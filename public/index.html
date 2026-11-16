@@ -13,7 +13,7 @@
   <main class="wrap">
     <header class="header">
       <h1>Model Inspector</h1>
-      <p class="sub">List and test every model your OpenAI-compatible API endpoint exposes.</p>
+      <p class="sub">List, export, print, and test every model your OpenAI-compatible API endpoint exposes.</p>
     </header>
 
     <div class="note" role="note">
@@ -82,14 +82,14 @@
     <section class="panel hidden" id="resultsPanel" aria-label="Available models">
       <div class="toolbar">
         <input id="filter" type="search" placeholder="Filter by model ID or owner…" aria-label="Filter models">
-        <select id="providerFilter" aria-label="Filter by provider">
-          <option value="">All providers</option>
+        <select id="providerFilter" aria-label="Filter by category">
+          <option value="">All categories</option>
         </select>
         <select id="sortBy" aria-label="Sort models">
           <option value="id-asc">Sort: ID (A–Z)</option>
           <option value="id-desc">Sort: ID (Z–A)</option>
           <option value="created-desc">Sort: Newest first</option>
-          <option value="provider-asc">Sort: Provider</option>
+          <option value="provider-asc">Sort: Category</option>
         </select>
         <div class="toolbar-actions">
           <button type="button" class="ghost" id="copyAllBtn">Copy IDs</button>
@@ -98,12 +98,33 @@
         <span class="count" id="count"></span>
       </div>
 
+      <div class="export-bar" aria-label="Print and export options">
+        <div class="export-scope-group">
+          <label for="exportScope" class="export-label">Document / Export Scope:</label>
+          <select id="exportScope" aria-label="Select print or export scope">
+            <option value="all-grouped">All models (grouped by category)</option>
+            <option value="all-flat">All models (single list)</option>
+            <option value="filtered">Current filtered view</option>
+          </select>
+        </div>
+
+        <div class="export-actions">
+          <button type="button" id="printDocBtn" class="btn-secondary">Print / Save PDF</button>
+          <button type="button" class="ghost" id="exportMdBtn">Export .md</button>
+          <button type="button" class="ghost" id="exportCsvBtn">Export .csv</button>
+          <button type="button" class="ghost" id="exportJsonBtn">Export .json</button>
+          <button type="button" class="ghost" id="exportTxtBtn">Export .txt</button>
+        </div>
+
+        <span id="exportStatus" class="muted-text export-status" role="status" aria-live="polite"></span>
+      </div>
+
       <div class="scroll">
         <table>
           <thead>
             <tr>
               <th class="col-id">Model ID</th>
-              <th class="col-provider">Provider</th>
+              <th class="col-provider">Category</th>
               <th class="col-owner">Owner</th>
               <th class="col-created">Created</th>
               <th class="col-action"><span class="sr-only">Actions</span></th>
@@ -143,5 +164,7 @@
       <pre id="errorOut"></pre>
     </section>
   </main>
+
+  <section id="printDocument" class="print-document" aria-hidden="true"></section>
 </body>
 </html>
