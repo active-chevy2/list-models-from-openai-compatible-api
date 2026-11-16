@@ -7,6 +7,7 @@
   <title>Model Inspector — OpenAI-Compatible API</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
   <link rel="stylesheet" href="/styles.css?v=2">
+  <script src="/captcha.js?v=2" defer></script>
   <script src="/app.js?v=2" defer></script>
 </head>
 <body>
@@ -73,8 +74,14 @@
         </div>
       </details>
 
+      <!-- CAPTCHA human check -->
+      <div class="captcha-wrapper">
+        <p class="captcha-label">Human check — enter the code shown below</p>
+        <div id="captchaContainer"></div>
+      </div>
+
       <div class="btnrow">
-        <button type="button" id="fetchBtn">Fetch Models</button>
+        <button type="button" id="fetchBtn" disabled>Fetch Models</button>
         <span id="status" role="status" aria-live="polite"></span>
       </div>
     </section>
