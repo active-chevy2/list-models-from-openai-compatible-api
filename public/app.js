@@ -5,6 +5,7 @@
   let LAST_CURL = "";
   let LAST_ENDPOINT = "";
   let exportStatusTimer = null;
+  let isPrintPrepared = false;
 
   const $ = (id) => document.getElementById(id);
 
@@ -14,17 +15,19 @@
     el.className = cls || "";
   }
 
-  function setExportStatus(msg) {
+  function setExportStatus(msg, isError = false) {
     const el = $("exportStatus");
     if (!el) return;
     el.textContent = msg;
+    el.classList.toggle("is-error", Boolean(isError));
     if (exportStatusTimer) {
       clearTimeout(exportStatusTimer);
     }
     if (msg) {
       exportStatusTimer = setTimeout(() => {
         el.textContent = "";
-      }, 3500);
+        el.classList.remove("is-error");
+      }, 4500);
     }
   }
 
@@ -323,11 +326,10 @@
     };
   }
 
-  function renderPrintDocument() {
+  function renderPrintDocument(data = getScopedExportData()) {
     const container = $("printDocument");
     if (!container) return;
 
-    const data = getScopedExportData();
     const endpoint = LAST_ENDPOINT || `${normalizeBase($("baseUrl").value)}/models` || "Unknown endpoint";
     const generatedAt = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
 
@@ -433,9 +435,32 @@
   }
 
   function printAsDocument() {
-    if (!MODELS.length) return;
-    renderPrintDocument();
-    window.print();
+    if (!MODELS.length) {
+      setExportStatus("Fetch models first before printing or saving as PDF.", true);
+      return;
+    }
+
+    const data = getScopedExportData();
+    if (!data.models.length) {
+      setExportStatus("No models in the selected scope to print.", true);
+      return;
+    }
+
+    renderPrintDocument(data);
+    $("printDocument")?.setAttribute("aria-hidden", "false");
+    isPrintPrepared = true;
+    setExportStatus("Opening print / Save as PDF dialog…");
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try {
+          window.print();
+        } catch (err) {
+          isPrintPrepared = false;
+          setExportStatus(`Print dialog failed: ${err?.message || err}`, true);
+        }
+      });
+    });
   }
 
   function escapeCsvCell(value) {
@@ -575,21 +600,48 @@
   }
 
   function downloadFile(content, filename, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setExportStatus(`Exported ${filename}`);
+    try {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.rel = "noopener";
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setExportStatus(`Exported ${filename}`);
+    } catch {
+      try {
+        const encoded = encodeURIComponent(content);
+        const link = document.createElement("a");
+        link.href = `data:${mimeType},${encoded}`;
+        link.download = filename;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setExportStatus(`Exported ${filename}`);
+      } catch (err) {
+        setExportStatus(`Export failed: ${err?.message || err}`, true);
+      }
+    }
   }
 
   function handleExport(format) {
-    if (!MODELS.length) return;
+    if (!MODELS.length) {
+      setExportStatus("Fetch models first before exporting.", true);
+      return;
+    }
+
     const data = getScopedExportData();
+    if (!data.models.length) {
+      setExportStatus("No models in the selected scope to export.", true);
+      return;
+    }
+
     const dateStamp = new Date().toISOString().slice(0, 10);
 
     switch (format) {
@@ -602,7 +654,7 @@
         break;
       case "csv":
         downloadFile(
-          buildCsvExport(data),
+          `\uFEFF${buildCsvExport(data)}`,
           `${data.slug}-${dateStamp}.csv`,
           "text/csv;charset=utf-8"
         );
@@ -908,13 +960,14 @@
     $("exportTxtBtn").addEventListener("click", () => handleExport("txt"));
 
     window.addEventListener("beforeprint", () => {
-      if (MODELS.length > 0) {
+      if (MODELS.length > 0 && !isPrintPrepared) {
         renderPrintDocument();
         $("printDocument")?.setAttribute("aria-hidden", "false");
       }
     });
 
     window.addEventListener("afterprint", () => {
+      isPrintPrepared = false;
       $("printDocument")?.setAttribute("aria-hidden", "true");
     });
 
