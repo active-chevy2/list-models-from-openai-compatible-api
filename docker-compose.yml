@@ -1,17 +1,21 @@
 services:
   website:
     build: .
-    restart: unless-stopped
+    environment:
+      - PORT=${CONTAINER_PORT:-3000}
+      - TRUST_PROXY=${TRUST_PROXY:-false}
+      - CAPTCHA_SECRET=${CAPTCHA_SECRET:-}
+    ports:
+      - "${HOST_PORT:-8080}:${CONTAINER_PORT:-3000}"
     init: true
     read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
     security_opt:
       - no-new-privileges:true
-    tmpfs:
-      - /var/cache/nginx:uid=101,gid=101,mode=0755
-      - /var/run:uid=101,gid=101,mode=0755
-      - /tmp:mode=1777
-    ports:
-      - "${HOST_PORT:-8080}:80"
+    restart: unless-stopped
     logging:
       driver: "json-file"
       options:
