@@ -1,4 +1,4 @@
-# My Site
+# List Models from OpenAI-Compatible API
 
 A lightweight, hardened static HTML site template served by Nginx in Docker.
 
