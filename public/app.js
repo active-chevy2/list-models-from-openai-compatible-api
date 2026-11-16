@@ -6,6 +6,7 @@
   let LAST_ENDPOINT = "";
   let exportStatusTimer = null;
   let isPrintPrepared = false;
+  let captcha = null;
 
   const $ = (id) => document.getElementById(id);
 
@@ -305,7 +306,6 @@
       };
     }
 
-    // Default: "all-grouped"
     const categories = getSortedCategories();
     const groups = categories.map((category) => ({
       category,
@@ -752,6 +752,11 @@
   }
 
   async function fetchModels() {
+    if (!captcha || !captcha.isSolved()) {
+      setStatus("Please complete the human check first.", "status-err");
+      return;
+    }
+
     const base = normalizeBase($("baseUrl").value);
     const key = $("apiKey").value.trim();
 
@@ -907,6 +912,39 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    // Initialize CAPTCHA
+    captcha = new Captcha("#captchaContainer", { length: 5 });
+    const fetchBtn = $("fetchBtn");
+    fetchBtn.disabled = true;
+
+    // Enable fetch button only after CAPTCHA is solved
+    const originalFetchModels = fetchModels;
+    // We already check captcha.isSolved() inside fetchModels,
+    // but we also enable the button dynamically.
+    // Use a MutationObserver or poll? Simpler: after verify, enable.
+    // We can wrap the verify button click.
+    // Find the verify button inside the captcha container
+    const captchaContainer = $("captchaContainer");
+    const verifyBtn = captchaContainer.querySelector(".captcha-verify");
+    if (verifyBtn) {
+      verifyBtn.addEventListener("click", () => {
+        // Use setTimeout to allow the Captcha's own verify handler to run first
+        setTimeout(() => {
+          if (captcha.isSolved()) {
+            fetchBtn.disabled = false;
+          }
+        }, 0);
+      });
+    }
+
+    // Also refresh resets solved state; disable button again.
+    const refreshBtn = captchaContainer.querySelector(".captcha-refresh");
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", () => {
+        fetchBtn.disabled = true;
+      });
+    }
+
     $("baseUrl").addEventListener("input", updateEndpointPreview);
     $("autoV1").addEventListener("change", updateEndpointPreview);
 

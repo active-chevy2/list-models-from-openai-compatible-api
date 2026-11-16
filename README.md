@@ -5,6 +5,7 @@ A lightweight, client-side web application served by hardened Nginx in Docker to
 ## Features
 
 - **Zero backend proxy:** All API requests are sent directly from your browser to the endpoint you enter. API keys remain in browser memory only and are never stored or logged by the server.
+- **Client-side human check (anti-bot):** A self-contained canvas CAPTCHA gates the “Fetch Models” action. It requires no external services, works with the strict `script-src 'self'` CSP, and deters casual automated requests. (It is not a cryptographic barrier.)
 - **Cloud & local endpoint support:** Works out of the box with OpenAI, OpenRouter, Groq, Google AI Studio, DeepSeek, Mistral, Together AI, and unauthenticated local servers such as Ollama (`http://localhost:11434/v1`) or LM Studio (`http://localhost:1234/v1`).
 - **Smart URL normalisation:** Automatically handles missing `http://` or `https://` schemes (using `http://` for local hosts and `https://` for remote hosts) and optionally appends `/v1` when omitted.
 - **Filter, sort & copy:** Search by model ID, owner, or category; filter by auto-detected model family; sort alphabetically or by creation date; and copy model IDs as plain text or a JSON array.
@@ -15,8 +16,9 @@ A lightweight, client-side web application served by hardened Nginx in Docker to
 ## Repository Structure
 
 - `public/index.html` — Semantic HTML markup for the Model Inspector interface and print document view.
-- `public/styles.css` — Dark-mode responsive stylesheet with dedicated `@media print` document rules.
+- `public/styles.css` — Dark-mode responsive stylesheet with dedicated `@media print` document rules and CAPTCHA styling.
 - `public/app.js` — Client-side logic for endpoint normalisation, fetching models, filtering/sorting, printing, exporting, and running test completions.
+- `public/captcha.js` — Self-contained canvas CAPTCHA (no external dependencies).
 - `public/favicon.svg` — Application icon.
 - `nginx.conf` — Nginx configuration with security headers, CSP, gzip compression, static asset caching, and `/health`.
 - `Dockerfile` — Builds the Alpine-based Nginx container image.
@@ -34,7 +36,8 @@ docker compose up -d --build
 ~~~
 
 2. Open `http://localhost:8080` in your browser.
-3. Verify the container health check endpoint at `http://localhost:8080/health` (returns `ok`).
+3. Complete the human check (CAPTCHA) to enable the “Fetch Models” button.
+4. Verify the container health check endpoint at `http://localhost:8080/health` (returns `ok`).
 
 ## Customise Port
 
@@ -54,6 +57,7 @@ docker compose up -d
 
 - **CORS requirements:** Because requests are made directly from your browser without a server-side proxy, the target API provider must allow cross-origin (`CORS`) requests from your origin. If a provider blocks browser requests, the app provides a ready-to-run `cURL` command in the error panel.
 - **HTTPS & mixed content:** If you deploy this app behind an HTTPS reverse proxy, modern browsers will block requests to plain `http://` endpoints (such as remote HTTP servers) due to mixed-content rules, though `http://localhost` continues to work in most browsers.
+- **Anti-bot limitation:** The CAPTCHA is entirely client-side and can be bypassed by a determined bot. It is intended as a low-friction deterrent for casual automated requests, not as a security boundary.
 
 ## Stop or Update
 
