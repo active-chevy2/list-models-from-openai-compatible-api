@@ -1,355 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Model Inspector — OpenAI-Compatible API</title>
-<style>
-  :root {
-    --bg: #0f1117;
-    --panel: #171a23;
-    --panel2: #1e222e;
-    --border: #2a2f3d;
-    --text: #e6e8ee;
-    --muted: #9aa0b0;
-    --accent: #6d4aff;
-    --accent-hover: #8570ff;
-    --ok: #3ecf8e;
-    --warn: #ffb454;
-    --err: #ff6b6b;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    min-height: 100vh;
-    padding: 24px;
-  }
-  .wrap { max-width: 900px; margin: 0 auto; }
-  h1 { font-size: 1.4rem; margin-bottom: 4px; }
-  .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
-  input, textarea, select {
-    width: 100%;
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    padding: 10px 12px;
-    font-size: 0.9rem;
-    outline: none;
-  }
-  input:focus, textarea:focus { border-color: var(--accent); }
-  input.mono { font-family: var(--mono); font-size: 0.82rem; }
-  .row { display: flex; gap: 12px; }
-  .row > div { flex: 1; }
-  button {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  button:hover { background: var(--accent-hover); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 0.75rem;
-    padding: 3px 10px;
-  }
-  button.ghost:hover { border-color: var(--accent); color: var(--text); }
-  .btnrow { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
-  #status { font-size: 0.8rem; margin-left: auto; }
-  .status-ok { color: var(--ok); }
-  .status-err { color: var(--err); }
-  .status-busy { color: var(--warn); }
-  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-  .toolbar input { max-width: 300px; }
-  .count { color: var(--muted); font-size: 0.8rem; margin-left: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  th {
-    text-align: left; color: var(--muted); font-size: 0.72rem; text-transform: uppercase;
-    letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; background: var(--panel);
-  }
-  td { padding: 8px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 0.8rem; }
-  tr:hover td { background: var(--panel2); }
-  .tag {
-    display: inline-block; padding: 2px 8px; border-radius: 20px;
-    font-size: 0.68rem; font-weight: 600; font-family: sans-serif;
-  }
-  .tag-openai { background: #10a37f22; color: #10a37f; }
-  .tag-anthropic { background: #d9775722; color: #d97757; }
-  .tag-google { background: #4285f422; color: #7aa5f8; }
-  .tag-meta { background: #0668e122; color: #5b9bff; }
-  .tag-mistral { background: #ff700022; color: #ff9d5c; }
-  .tag-other { background: #6d4aff22; color: #a797ff; }
-  .scroll { max-height: 480px; overflow-y: auto; }
-  .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.85rem; }
-  details summary { cursor: pointer; color: var(--muted); font-size: 0.8rem; margin-top: 10px; }
-  pre {
-    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px; font-family: var(--mono); font-size: 0.75rem; overflow-x: auto;
-    white-space: pre-wrap; word-break: break-all; margin-top: 10px;
-  }
-  .testresp { max-height: 250px; overflow-y: auto; }
-  .note {
-    font-size: 0.78rem; color: var(--muted); background: var(--panel2);
-    border-left: 3px solid var(--accent); padding: 10px 12px; border-radius: 0 8px 8px 0;
-    margin-bottom: 16px;
-  }
-  .hidden { display: none; }
-  .footer-actions { display: flex; gap: 8px; margin-top: 10px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>Model Inspector — OpenAI-Compatible API</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
 </head>
 <body>
-<div class="wrap">
-  <h1>🔍 Model Inspector</h1>
-  <div class="sub">List every model your OpenAI-compatible API key can actually use — stop memorising names.</div>
+  <main class="wrap">
+    <header class="header">
+      <h1>Model Inspector</h1>
+      <p class="sub">List and test every model your OpenAI-compatible API endpoint exposes.</p>
+    </header>
 
-  <div class="note">
-    🔒 This page runs <b>entirely in your browser</b>. Your API key is only sent to the endpoint you type below — never stored, never sent anywhere else. Save this file locally and open it whenever you need it.
-  </div>
+    <div class="note" role="note">
+      <strong>Client-side only:</strong> Your API key stays in browser memory and is sent solely to the endpoint you specify below. Nothing is stored or proxied by this server.
+    </div>
 
-  <div class="panel">
-    <div class="row">
-      <div>
-        <label for="baseUrl">Base URL (must end with /v1)</label>
-        <input id="baseUrl" class="mono" type="text" spellcheck="false"
-               placeholder="https://api.openai.com/v1" value="">
-      </div>
-      <div>
-        <label for="apiKey">API Key</label>
-        <input id="apiKey" class="mono" type="password" spellcheck="false"
-               placeholder="sk-...">
-      </div>
-    </div>
-    <details>
-      <summary>Common base URLs (click to fill)</summary>
-      <div class="footer-actions">
-        <button class="ghost" onclick="setUrl('https://api.openai.com/v1')">OpenAI</button>
-        <button class="ghost" onclick="setUrl('https://openrouter.ai/api/v1')">OpenRouter</button>
-        <button class="ghost" onclick="setUrl('https://api.groq.com/openai/v1')">Groq</button>
-        <button class="ghost" onclick="setUrl('https://generativelanguage.googleapis.com/v1beta/openai')">Google AI Studio</button>
-      </div>
-    </details>
-    <div class="btnrow">
-      <button id="fetchBtn" onclick="fetchModels()">Fetch Models</button>
-      <span id="status"></span>
-    </div>
-  </div>
-
-  <div class="panel hidden" id="resultsPanel">
-    <div class="toolbar">
-      <input id="filter" type="text" placeholder="Filter models…" oninput="render()">
-      <button class="ghost" onclick="copyAll()" id="copyAllBtn">Copy all</button>
-      <span class="count" id="count"></span>
-    </div>
-    <div class="scroll">
-      <table>
-        <thead>
-          <tr><th style="width:35%">Model ID</th><th style="width:15%">Provider</th><th style="width:20%">Owner</th><th>Created</th><th></th></tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-    <div class="empty hidden" id="emptyState">No models match your filter.</div>
-
-    <details>
-      <summary>🧪 Test a model (send a tiny chat completion)</summary>
-      <div class="row" style="margin-top:10px">
-        <div>
-          <label for="testModel">Model ID</label>
-          <select id="testModel"></select>
+    <section class="panel" aria-label="API connection settings">
+      <div class="row">
+        <div class="field field-wide">
+          <label for="baseUrl">Base URL</label>
+          <input
+            id="baseUrl"
+            class="mono"
+            type="url"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="https://api.openai.com/v1"
+          >
+          <div class="field-meta">
+            <label class="checkbox-label">
+              <input id="autoV1" type="checkbox" checked>
+              <span>Auto-append <code>/v1</code> if missing</span>
+            </label>
+            <span id="resolvedPreview" class="resolved-preview mono"></span>
+          </div>
         </div>
-        <div>
-          <label for="testMsg">Prompt</label>
-          <input id="testMsg" type="text" value="Say 'hi' in exactly one word.">
+
+        <div class="field">
+          <label for="apiKey">API Key <span class="opt">(optional for local servers)</span></label>
+          <div class="input-group">
+            <input
+              id="apiKey"
+              class="mono"
+              type="password"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="sk-... or leave blank"
+            >
+            <button type="button" id="toggleKeyBtn" class="ghost icon-btn" aria-label="Show API key">Show</button>
+            <button type="button" id="clearKeyBtn" class="ghost icon-btn" aria-label="Clear API key">Clear</button>
+          </div>
         </div>
       </div>
-      <div class="btnrow" style="margin-top:10px">
-        <button id="testBtn" onclick="testModel()">Send test</button>
+
+      <details class="presets">
+        <summary>Common endpoints (click to fill)</summary>
+        <div class="preset-list" id="presetList">
+          <button type="button" class="ghost" data-url="https://api.openai.com/v1">OpenAI</button>
+          <button type="button" class="ghost" data-url="https://openrouter.ai/api/v1">OpenRouter</button>
+          <button type="button" class="ghost" data-url="https://api.groq.com/openai/v1">Groq</button>
+          <button type="button" class="ghost" data-url="https://generativelanguage.googleapis.com/v1beta/openai">Google AI Studio</button>
+          <button type="button" class="ghost" data-url="https://api.deepseek.com/v1">DeepSeek</button>
+          <button type="button" class="ghost" data-url="https://api.mistral.ai/v1">Mistral</button>
+          <button type="button" class="ghost" data-url="https://api.together.xyz/v1">Together AI</button>
+          <button type="button" class="ghost" data-url="http://localhost:11434/v1">Ollama (Local)</button>
+          <button type="button" class="ghost" data-url="http://localhost:1234/v1">LM Studio (Local)</button>
+        </div>
+      </details>
+
+      <div class="btnrow">
+        <button type="button" id="fetchBtn">Fetch Models</button>
+        <span id="status" role="status" aria-live="polite"></span>
       </div>
-      <pre id="testOut" class="testresp hidden"></pre>
-    </details>
-  </div>
+    </section>
 
-  <div class="panel hidden" id="errorPanel">
-    <label>Error details</label>
-    <pre id="errorOut"></pre>
-  </div>
-</div>
+    <section class="panel hidden" id="resultsPanel" aria-label="Available models">
+      <div class="toolbar">
+        <input id="filter" type="search" placeholder="Filter by model ID or owner…" aria-label="Filter models">
+        <select id="providerFilter" aria-label="Filter by provider">
+          <option value="">All providers</option>
+        </select>
+        <select id="sortBy" aria-label="Sort models">
+          <option value="id-asc">Sort: ID (A–Z)</option>
+          <option value="id-desc">Sort: ID (Z–A)</option>
+          <option value="created-desc">Sort: Newest first</option>
+          <option value="provider-asc">Sort: Provider</option>
+        </select>
+        <div class="toolbar-actions">
+          <button type="button" class="ghost" id="copyAllBtn">Copy IDs</button>
+          <button type="button" class="ghost" id="copyJsonBtn">Copy JSON</button>
+        </div>
+        <span class="count" id="count"></span>
+      </div>
 
-<script>
-let MODELS = [];
-const $ = id => document.getElementById(id);
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id">Model ID</th>
+              <th class="col-provider">Provider</th>
+              <th class="col-owner">Owner</th>
+              <th class="col-created">Created</th>
+              <th class="col-action"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
 
-function setUrl(u) { $("baseUrl").value = u; }
+      <div class="empty hidden" id="emptyState">No models match your current filter.</div>
 
-function setStatus(msg, cls) {
-  $("status").textContent = msg;
-  $("status").className = cls || "";
-}
+      <details class="test-box">
+        <summary>Test a model (send a tiny chat completion)</summary>
+        <div class="row test-row">
+          <div class="field">
+            <label for="testModel">Model ID</label>
+            <select id="testModel" class="mono"></select>
+          </div>
+          <div class="field field-wide">
+            <label for="testMsg">Prompt</label>
+            <input id="testMsg" type="text" value="Reply with only the word: ready">
+          </div>
+        </div>
+        <div class="btnrow">
+          <button type="button" id="testBtn">Send Test</button>
+          <span id="testStatus" class="muted-text" role="status" aria-live="polite"></span>
+        </div>
+        <pre id="testOut" class="testresp hidden"></pre>
+      </details>
+    </section>
 
-function normalizeBase(url) {
-  url = url.trim().replace(/\/+$/, "");
-  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
-  // append /v1 if the user forgot it
-  if (!/\/v\d+(beta)?$/i.test(url) && !/\/openai$/i.test(url)) url += "/v1";
-  return url;
-}
-
-function guessProvider(id) {
-  const i = id.toLowerCase();
-  if (i.includes("gpt") || i.includes("o1") || i.includes("openai")) return ["OpenAI", "tag-openai"];
-  if (i.includes("claude") || i.includes("anthropic")) return ["Anthropic", "tag-anthropic"];
-  if (i.includes("gemini") || i.includes("google")) return ["Google", "tag-google"];
-  if (i.includes("llama") || i.includes("meta")) return ["Meta", "tag-meta"];
-  if (i.includes("mistral") || i.includes("codestral") || i.includes("pixtral")) return ["Mistral", "tag-mistral"];
-  return ["Other", "tag-other"];
-}
-
-async function fetchModels() {
-  const base = normalizeBase($("baseUrl").value);
-  const key = $("apiKey").value.trim();
-  if (!base || !key) { setStatus("Enter both endpoint and key.", "status-err"); return; }
-
-  $("fetchBtn").disabled = true;
-  setStatus("Fetching…", "status-busy");
-  $("errorPanel").classList.add("hidden");
-
-  try {
-    const res = await fetch(base + "/models", {
-      headers: key ? { "Authorization": "Bearer " + key } : {}
-    });
-    const text = await res.text();
-    let json;
-    try { json = JSON.parse(text); } catch { throw new Error("Response was not JSON. Got: " + text.slice(0, 300)); }
-
-    if (!res.ok) {
-      throw new Error("HTTP " + res.status + " " + res.statusText + "\n\n" + text.slice(0, 800));
-    }
-    let list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
-    if (!list.length) throw new Error("Endpoint responded OK but listed zero models.\n\nRaw:\n" + text.slice(0, 500));
-
-    MODELS = list.map(m => ({
-      id: m.id || m.name || String(m),
-      owner: m.owned_by || m.owner || "—",
-      created: m.created ? new Date(m.created * 1000).toISOString().slice(0, 10) : "—"
-    })).sort((a, b) => a.id.localeCompare(b.id));
-
-    $("resultsPanel").classList.remove("hidden");
-    $("filter").value = "";
-    render();
-    setStatus("✓ " + MODELS.length + " models loaded", "status-ok");
-  } catch (e) {
-    const msg = String(e.message || e);
-    $("errorPanel").classList.remove("hidden");
-    let hint = "";
-    if (/failed to fetch|networkerror/i.test(msg)) hint = "\n\nHint: This is usually CORS. The provider may block browser requests — try the cURL shown below instead:";
-    if (/401|403/.test(msg)) hint = "\n\nHint: Check your API key.";
-    if (/404/.test(msg)) hint = "\n\nHint: Check the base URL — it should usually end in /v1.";
-    $("errorOut").textContent = msg + hint +
-      "\n\ncURL equivalent:\ncurl " + base + "/models -H \"Authorization: Bearer YOUR_KEY\"";
-    setStatus("Failed — see details below", "status-err");
-  } finally {
-    $("fetchBtn").disabled = false;
-  }
-}
-
-function filtered() {
-  const q = $("filter").value.trim().toLowerCase();
-  return q ? MODELS.filter(m => m.id.toLowerCase().includes(q)) : MODELS;
-}
-
-function render() {
-  const list = filtered();
-  const tb = $("tbody");
-  tb.innerHTML = "";
-  const sel = $("testModel");
-  sel.innerHTML = "";
-
-  for (const m of list) {
-    const [prov, tagCls] = guessProvider(m.id);
-    const tr = document.createElement("tr");
-    tr.innerHTML =
-      "<td>" + escapeHtml(m.id) + "</td>" +
-      "<td><span class='tag " + tagCls + "'>" + prov + "</span></td>" +
-      "<td>" + escapeHtml(m.owner) + "</td>" +
-      "<td>" + m.created + "</td>" +
-      "<td><button class='ghost' onclick='copyId(this)' data-id=\"" + escapeHtml(m.id) + "\">Copy</button></td>";
-    tb.appendChild(tr);
-
-    const opt = document.createElement("option");
-    opt.value = m.id; opt.textContent = m.id;
-    sel.appendChild(opt);
-  }
-  $("count").textContent = list.length + " / " + MODELS.length + " models";
-  $("emptyState").classList.toggle("hidden", list.length > 0);
-}
-
-async function copyId(btn) {
-  const id = btn.dataset.id;
-  try { await navigator.clipboard.writeText(id); btn.textContent = "Copied!"; setTimeout(() => btn.textContent = "Copy", 900); }
-  catch { prompt("Copy manually:", id); }
-}
-
-async function copyAll() {
-  const ids = filtered().map(m => m.id).join("\n");
-  try { await navigator.clipboard.writeText(ids); $("copyAllBtn").textContent = "Copied!"; setTimeout(() => $("copyAllBtn").textContent = "Copy all", 900); }
-  catch { prompt("Copy manually:", ids); }
-}
-
-async function testModel() {
-  const base = normalizeBase($("baseUrl").value);
-  const key = $("apiKey").value.trim();
-  const model = $("testModel").value;
-  const msg = $("testMsg").value || "hi";
-  const out = $("testOut"), btn = $("testBtn");
-
-  out.classList.remove("hidden");
-  out.textContent = "Sending…";
-  btn.disabled = true;
-  try {
-    const res = await fetch(base + "/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-      body: JSON.stringify({ model: model, messages: [{ role: "user", content: msg }], max_tokens: 50 })
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(JSON.stringify(json, null, 2).slice(0, 800));
-    const reply = json.choices?.[0]?.message?.content ?? JSON.stringify(json, null, 2);
-    const usage = json.usage ? `\n\n(tokens: ${json.usage.total_tokens ?? "?"} total)` : "";
-    out.textContent = reply + usage;
-  } catch (e) {
-    out.textContent = "❌ " + (e.message || e) + "\n\nNote: model may be listed but not enabled for your key, or CORS may block browser calls.";
-  } finally { btn.disabled = false; }
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-
-// quick-fill from URL params like ?url=...&key=... (optional convenience, nothing leaves the page)
-try {
-  const p = new URLSearchParams(location.search);
-  if (p.get("url")) $("baseUrl").value = p.get("url");
-} catch {}
-</script>
+    <section class="panel hidden" id="errorPanel" aria-label="Error details">
+      <div class="error-header">
+        <label>Error details</label>
+        <button type="button" class="ghost" id="copyCurlBtn">Copy cURL</button>
+      </div>
+      <pre id="errorOut"></pre>
+    </section>
+  </main>
 </body>
 </html>
