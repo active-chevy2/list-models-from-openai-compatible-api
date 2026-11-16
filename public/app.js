@@ -110,18 +110,18 @@
   }
 
   function formatCreated(raw) {
-    if (raw === null || raw === undefined || raw === "") return "—";
+    if (raw === null || raw === undefined || raw === "") return "\u2014";
 
     const num = Number(raw);
     if (Number.isFinite(num)) {
-      if (num <= 0) return "—";
+      if (num <= 0) return "\u2014";
       const seconds = num > 1e11 ? Math.floor(num / 1000) : num;
       const date = new Date(seconds * 1000);
       const year = date.getUTCFullYear();
       if (!Number.isNaN(date.getTime()) && year >= 2000 && year <= 2100) {
         return date.toISOString().slice(0, 10);
       }
-      return "—";
+      return "\u2014";
     }
 
     const parsed = new Date(String(raw));
@@ -129,7 +129,7 @@
       return parsed.toISOString().slice(0, 10);
     }
 
-    return "—";
+    return "\u2014";
   }
 
   function buildAuthHeaders(key, extraHeaders = {}) {
@@ -188,8 +188,8 @@
     select.innerHTML = "";
 
     const baseOptions = [
-      { value: "all-grouped", label: `All models — by category (${MODELS.length})` },
-      { value: "all-flat", label: `All models — single list (${MODELS.length})` },
+      { value: "all-grouped", label: `All models \u2014 by category (${MODELS.length})` },
+      { value: "all-flat", label: `All models \u2014 single list (${MODELS.length})` },
       { value: "filtered", label: "Current filtered view" },
     ];
 
@@ -449,7 +449,7 @@
     renderPrintDocument(data);
     $("printDocument")?.setAttribute("aria-hidden", "false");
     isPrintPrepared = true;
-    setExportStatus("Opening print / Save as PDF dialog…");
+    setExportStatus("Opening print / Save as PDF dialog\u2026");
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -767,7 +767,7 @@
     }
 
     $("fetchBtn").disabled = true;
-    setStatus("Fetching…", "status-busy");
+    setStatus("Fetching\u2026", "status-busy");
     $("errorPanel").classList.add("hidden");
 
     try {
@@ -805,7 +805,7 @@
       MODELS = rawList.map((m) => {
         const id = typeof m === "string" ? m : String(m.id || m.name || "");
         const [provider, tagCls] = guessProvider(id);
-        const created = typeof m === "object" && m !== null ? formatCreated(m.created) : "—";
+        const created = typeof m === "object" && m !== null ? formatCreated(m.created) : "\u2014";
         const createdNum = typeof m === "object" && m !== null && Number.isFinite(Number(m.created))
           ? Number(m.created)
           : 0;
@@ -814,7 +814,7 @@
           id,
           provider,
           tagCls,
-          owner: typeof m === "object" && m !== null ? String(m.owned_by || m.owner || "—") : "—",
+          owner: typeof m === "object" && m !== null ? String(m.owned_by || m.owner || "\u2014") : "\u2014",
           created,
           createdSort: createdNum > 1e11 ? Math.floor(createdNum / 1000) : createdNum,
         };
@@ -825,14 +825,14 @@
       populateProviderFilter();
       populateExportScope();
       render();
-      setStatus(`✓ ${MODELS.length} models loaded`, "status-ok");
+      setStatus(`\u2713 ${MODELS.length} models loaded`, "status-ok");
     } catch (err) {
       const msg = String(err?.message || err);
       $("errorPanel").classList.remove("hidden");
 
       let hint = "";
       if (/failed to fetch|networkerror|load failed/i.test(msg)) {
-        hint = "\n\nHint: Browser request failed — usually CORS blocked by the provider, an unreachable local port, or mixed HTTP/HTTPS content. Test with cURL below:";
+        hint = "\n\nHint: Browser request failed \u2014 usually CORS blocked by the provider, an unreachable local port, or mixed HTTP/HTTPS content. Test with cURL below:";
       } else if (/\b(401|403)\b/.test(msg)) {
         hint = "\n\nHint: Authentication failed. Check that your API key is valid and active.";
       } else if (/\b404\b/.test(msg)) {
@@ -841,7 +841,7 @@
 
       LAST_CURL = buildCurl(base, Boolean(key));
       $("errorOut").textContent = `${msg}${hint}\n\ncURL equivalent:\n${LAST_CURL}`;
-      setStatus("Failed — see error details below", "status-err");
+      setStatus("Failed \u2014 see error details below", "status-err");
     } finally {
       $("fetchBtn").disabled = false;
     }
@@ -859,7 +859,7 @@
     if (!base || !model) return;
 
     out.classList.remove("hidden");
-    out.textContent = "Sending chat completion…";
+    out.textContent = "Sending chat completion\u2026";
     testStatus.textContent = "";
     btn.disabled = true;
 
@@ -912,38 +912,17 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Initialize CAPTCHA
-    captcha = new Captcha("#captchaContainer", { length: 5 });
     const fetchBtn = $("fetchBtn");
     fetchBtn.disabled = true;
 
-    // Enable fetch button only after CAPTCHA is solved
-    const originalFetchModels = fetchModels;
-    // We already check captcha.isSolved() inside fetchModels,
-    // but we also enable the button dynamically.
-    // Use a MutationObserver or poll? Simpler: after verify, enable.
-    // We can wrap the verify button click.
-    // Find the verify button inside the captcha container
-    const captchaContainer = $("captchaContainer");
-    const verifyBtn = captchaContainer.querySelector(".captcha-verify");
-    if (verifyBtn) {
-      verifyBtn.addEventListener("click", () => {
-        // Use setTimeout to allow the Captcha's own verify handler to run first
-        setTimeout(() => {
-          if (captcha.isSolved()) {
-            fetchBtn.disabled = false;
-          }
-        }, 0);
-      });
-    }
-
-    // Also refresh resets solved state; disable button again.
-    const refreshBtn = captchaContainer.querySelector(".captcha-refresh");
-    if (refreshBtn) {
-      refreshBtn.addEventListener("click", () => {
+    captcha = new Captcha("#captchaContainer", {
+      onVerified: () => {
+        fetchBtn.disabled = false;
+      },
+      onReset: () => {
         fetchBtn.disabled = true;
-      });
-    }
+      },
+    });
 
     $("baseUrl").addEventListener("input", updateEndpointPreview);
     $("autoV1").addEventListener("change", updateEndpointPreview);
