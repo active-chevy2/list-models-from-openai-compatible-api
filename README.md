@@ -1,21 +1,22 @@
 # Model Inspector — OpenAI-Compatible API
 
-A lightweight, client-side web application served by hardened Nginx in Docker to list, filter, and test models exposed by any OpenAI-compatible API endpoint (`/v1/models` and `/v1/chat/completions`).
+A lightweight, client-side web application served by hardened Nginx in Docker to list, filter, print, export, and test models exposed by any OpenAI-compatible API endpoint (`/v1/models` and `/v1/chat/completions`).
 
 ## Features
 
 - **Zero backend proxy:** All API requests are sent directly from your browser to the endpoint you enter. API keys remain in browser memory only and are never stored or logged by the server.
 - **Cloud & local endpoint support:** Works out of the box with OpenAI, OpenRouter, Groq, Google AI Studio, DeepSeek, Mistral, Together AI, and unauthenticated local servers such as Ollama (`http://localhost:11434/v1`) or LM Studio (`http://localhost:1234/v1`).
 - **Smart URL normalisation:** Automatically handles missing `http://` or `https://` schemes (using `http://` for local hosts and `https://` for remote hosts) and optionally appends `/v1` when omitted.
-- **Filter, sort & export:** Search by model ID, owner, or provider; filter by auto-detected model family; sort alphabetically or by creation date; and copy model IDs as plain text or a JSON array.
+- **Filter, sort & copy:** Search by model ID, owner, or category; filter by auto-detected model family; sort alphabetically or by creation date; and copy model IDs as plain text or a JSON array.
+- **Print as document & multi-format export:** Print or save as PDF with a clean light-mode document layout, or download files as **Markdown (`.md`)**, **CSV (`.csv`)**, **JSON (`.json`)**, or **Plain Text (`.txt`)**—either for all models grouped by category, all models in a single list, the current filtered view, or an individual category.
 - **Built-in completion tester:** Send a quick test prompt to any listed model and inspect the response, latency, and token usage.
 - **Hardened container setup:** Strict Content Security Policy (`script-src 'self'`, `style-src 'self'`), read-only root filesystem, `no-new-privileges`, `/health` endpoint, and automatic log rotation.
 
 ## Repository Structure
 
-- `public/index.html` — Semantic HTML markup for the Model Inspector interface.
-- `public/styles.css` — Dark-mode responsive stylesheet.
-- `public/app.js` — Client-side logic for endpoint normalisation, fetching models, filtering/sorting, and running test completions.
+- `public/index.html` — Semantic HTML markup for the Model Inspector interface and print document view.
+- `public/styles.css` — Dark-mode responsive stylesheet with dedicated `@media print` document rules.
+- `public/app.js` — Client-side logic for endpoint normalisation, fetching models, filtering/sorting, printing, exporting, and running test completions.
 - `public/favicon.svg` — Application icon.
 - `nginx.conf` — Nginx configuration with security headers, CSP, gzip compression, static asset caching, and `/health`.
 - `Dockerfile` — Builds the Alpine-based Nginx container image.
