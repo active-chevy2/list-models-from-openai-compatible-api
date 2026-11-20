@@ -1,4 +1,4 @@
-# Model Inspector — OpenAI-Compatible API
+# LLM Model Inspector (OpenAI-Compatible API)
 
 <a href="https://www.aihonestybadge.com" target="_blank" rel="noopener"><img src="https://www.aihonestybadge.com/badges/ai-generated-small.svg" alt="AI Generated" height="20"></a>
 
